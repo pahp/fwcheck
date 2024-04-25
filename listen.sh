@@ -19,7 +19,6 @@ EOF
 }
 
 UDP_OPTION=""
-PORT=80
 SEC=10
 OPTIND=""
 
@@ -49,6 +48,20 @@ do
 			;;
 	esac
 done
+
+if [[ -z $PORT ]]
+then
+	echo "Fatal: Didn't supply a port on which to listen!"
+
+	usage
+	exit 1
+fi
+
+if ! dpkg -l | grep netcat-openbsd &> /dev/null
+then
+	echo "Fatal: fwcheck requires the package netcat-openbsd!"
+	exit 1
+fi
 
 OUTPUT=$(timeout $SEC nc $UDP_OPTION -l $PORT)
 RET=$?
