@@ -19,7 +19,8 @@ EOF
 }
 
 # check prereqs
-bash ./prereq.sh
+source prereq.sh
+assert_prereqs
 
 UDP_OPTION=""
 SEC=10

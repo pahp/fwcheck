@@ -29,6 +29,10 @@ function do_test() {
 	fi
 }
 
+# check prereqs
+source prereq.sh
+assert_prereqs
+
 DEBUG=true
 TEMPFILE=$(mktemp)
 SSH_CMD="ssh -o StrictHostKeyChecking=no -i /root/.ssh/fwtest root@client" 
