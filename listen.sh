@@ -18,6 +18,9 @@ Returns true if it received data, otherwise returns false.
 EOF
 }
 
+# check prereqs
+bash ./prereq.sh
+
 UDP_OPTION=""
 SEC=10
 OPTIND=""

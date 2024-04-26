@@ -37,6 +37,9 @@ function output_check() {
 
 # 'main' starts here
 
+# check prereqs
+bash ./prereq.sh
+
 UDP_OPTION=""
 SEC=10
 OPTIND=""
