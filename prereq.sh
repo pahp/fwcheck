@@ -10,6 +10,4 @@ function assert_prereqs() {
 		echo "sudo apt install netcat-openbsd"
 		exit 1
 	fi
-
-	exit 0
 }
