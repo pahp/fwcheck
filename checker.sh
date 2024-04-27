@@ -30,7 +30,7 @@ function do_test() {
 }
 
 # check prereqs
-source prereq.sh
+source helper.sh
 assert_prereqs
 
 DEBUG=true

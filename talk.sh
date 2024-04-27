@@ -38,7 +38,7 @@ function output_check() {
 # 'main' starts here
 
 # check prereqs
-source prereq.sh
+source helper.sh
 assert_prereqs
 
 UDP_OPTION=""

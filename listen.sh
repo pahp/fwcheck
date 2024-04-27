@@ -19,7 +19,7 @@ EOF
 }
 
 # check prereqs
-source prereq.sh
+source helper.sh
 assert_prereqs
 
 UDP_OPTION=""
