@@ -13,6 +13,10 @@ else echo 'fwcheck exists!'
 	cd ~/fwcheck
 	if grep https://github.com/pahp/fwcheck.git .git/config
 	then echo 'Seems to be!'
+
+		# squash annoying git messages
+		git config pull.rebase false
+
 		echo 'Making sure it has not been modified...'
 		if git diff | grep diff
 		then
