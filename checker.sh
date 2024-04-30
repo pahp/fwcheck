@@ -2,6 +2,10 @@
 #
 # runs a series of checks
 #
+
+RED='\033[0;31m'
+RED='\033[1;32m'
+NC='\033[0m'
 function do_test() {
 
 	QUIT_ON_FAIL=$1
@@ -21,10 +25,10 @@ function do_test() {
 		if [[ -n $OUTPUT ]] # we got a reply, which means we connected!
 		then
 			# success means connecting
-			echo " YES! :) (we connected, which is good)"
+			echo " ${GREEN}YES! SUCCESS :)${NC} (we connected, which is good)"
 			PASSED=true
 		else
-			echo " NO! :( (we couldn't connect, which is bad)"
+			echo " ${RED}NO! FAIL :(${NC} (we couldn't connect, which is bad)"
 			PASSED=false
 		fi
 	else 
@@ -32,10 +36,10 @@ function do_test() {
 		if [[ -n $OUTPUT ]]
 		then
 			# success means NOT connecting
-			echo " YES! :(  (we connected, which is bad!)"
+			echo " ${RED}YES! FAIL :(${NC}  (we connected, which is bad!)"
 			PASSED=false
 		else
-			echo " NO! :) (we couldn't connect, which is good!)"
+			echo " ${GREEN}NO! SUCCESS :)${NC} (we couldn't connect, which is good!)"
 			PASSED=true
 		fi
 	fi
@@ -79,6 +83,13 @@ $DEBUG && echo "Bootstrapping for all nodes complete."
 # check prereqs
 source helper.sh
 assert_prereqs
+if git pull
+then
+	echo "Up to date."
+else
+	echo "Fail: Issue updating the fwcheck git repo!"
+	exit 1
+fi
 
 DEBUG=true
 SSH_CMD="ssh -o StrictHostKeyChecking=no -i /root/.ssh/fwtest root@client" 
@@ -94,11 +105,6 @@ QUIT_ON_FAIL=1
 echo
 echo Starting tests!
 echo
-
-function client_to_server_tcp81() {
-	echo -n "TEST 0: Can client can reach server:81 (tcp) [nothing]? "
-	do_test $QUIT_ON_FAIL 1 client "curl http://server:81/ 2> /dev/null"
-}
 
 function client_to_server_tcp443() {
 	echo -n "TEST 1: Can client can reach server:443 (tcp) [https]? "
@@ -116,38 +122,14 @@ function client_to_server_tcp22() {
 }
 
 function client_to_server_tcp3306() {
-	echo -n "Can client reach server:3306 (tcp) [mysql]"
+	echo -n "Can client reach server:3306 (tcp) [mysql] "
 	do_test $QUIT_ON_FAIL 0 client "cd fwcheck && ./talk.sh -H server -p 3306 -q 2> /dev/null"
 }
 
 
 function xdc_to_server_tcp3306() {
-	echo -n "Can XDC reach server:3306 (tcp) [mysql]? It should be disallowed."
+	echo -n "Can XDC reach server:3306 (tcp) [mysql]? It should be disallowed. "
 	do_test $QUIT_ON_FAIL 1 localhost "cd fwcheck && ./talk.sh -H server -p 3306 -q 2> /dev/null"
-}
-
-
-function server_to_other_tcp22() {
-	echo -n "Can server ssh to other host (tcp 22)..."
-	do_test $QUIT_ON_FAIL 0 server "cd fwcheck && ./talk.sh -H client -p 22"
-}
-
-function server_to_other_tcp80() {
-	echo -n "Can server access other websites (tcp 80)..."
-	ssh client "cd fwcheck && sudo ./listen.sh -p 80 -s 5" &> /dev/null & # temp listener on client
-	do_test $QUIT_ON_FAIL 0 server "cd fwcheck && ./talk.sh -H client -p 80"
-}
-
-function server_to_other_tcp443() {
-	echo -n "Can server access other websites (tcp 443)..."
-	ssh client "cd fwcheck && sudo ./listen.sh -p 443 -s 5" &> /dev/null & # temp listener on client
-	do_test $QUIT_ON_FAIL 0 server "cd fwcheck && ./talk.sh -H client -p 443"
-}
-
-function server_to_other_tcp25() {
-	echo -n "Can server reach mail servers (tcp 25)..."
-	ssh client "cd fwcheck && sudo ./listen.sh -p 25 -s 5" &> /dev/null & # temp listener on client
-	do_test $QUIT_ON_FAIL 0 server "cd fwcheck && ./talk.sh -H client -p 443"
 }
 
 function client_ping_server() {
@@ -166,7 +148,10 @@ function server_ping_client() {
 	echo "(Technically, the tasks do not require this, but there is a manual test for it.)"
 }
 
-function source_to_dest_prot_port() {
+function both_src_to_dst_proto_port() {
+
+	# use then when you have to start a listening process
+	# success depends on whether the *listener* gets data
 
 	SOURCE=$1
 	DEST=$2
@@ -190,6 +175,22 @@ function source_to_dest_prot_port() {
 
 }
 
+function src_to_dst_tcp_port() {
+
+	# use this function when there is already a TCP service running
+
+	SOURCE=$1
+	DEST=$2
+	UPORT=$3
+
+	echo -n "Can $SOURCE reach $DEST on TCP port $UPORT... "
+
+	# start talkers in background with a sleep delay
+	do_test $QUIT_ON_FAIL 0 $SOURCE "cd fwcheck && ./talk.sh -H $DEST -p $UPORT"
+
+}
+
+
 echo "(3.1) Inbound TCP connections to server on standard ports for OpenSSH, Apache, and MySQL:"
 client_to_server_tcp22
 client_to_server_tcp80
@@ -200,12 +201,12 @@ xdc_to_server_tcp3306
 echo
 
 echo "(3.2) Inbound to server ports 10000-10005 on UDP:"
-source_to_dest_prot_port client server "udp" 10000
-source_to_dest_prot_port client server "udp" 10001
-source_to_dest_prot_port client server "udp" 10002
-source_to_dest_prot_port client server "udp" 10003
-source_to_dest_prot_port client server "udp" 10004
-source_to_dest_prot_port client server "udp" 10005
+both_src_to_dst_proto_port client server "udp" 10000
+both_src_to_dst_proto_port client server "udp" 10001
+both_src_to_dst_proto_port client server "udp" 10002
+both_src_to_dst_proto_port client server "udp" 10003
+both_src_to_dst_proto_port client server "udp" 10004
+both_src_to_dst_proto_port client server "udp" 10005
 
 echo
 
@@ -220,22 +221,22 @@ server_ping_client
 echo
 
 echo "(3.5) Outbound from server to TCP ports 22, 25, 80, 443:"
-server_to_other_tcp22
-server_to_other_tcp25
-server_to_other_tcp80
-server_to_other_tcp443
+src_to_dst_tcp_port server client 22
+src_to_dst_tcp_port server client 25
+src_to_dst_tcp_port server client 80
+src_to_dst_tcp_port server client 443
 
 echo
 
 echo "(3.6) Outbound from server to client on UDP ports 10006-10010:"
-source_to_dest_prot_port server client "udp" 10006
-source_to_dest_prot_port server client "udp" 10007
-source_to_dest_prot_port server client "udp" 10008
-source_to_dest_prot_port server client "udp" 10009
-source_to_dest_prot_port server client "udp" 10010
+both_src_to_dst_proto_port server client udp 10006
+both_src_to_dst_proto_port server client udp 10007
+both_src_to_dst_proto_port server client udp 10008
+both_src_to_dst_proto_port server client udp 10009
+both_src_to_dst_proto_port server client udp 10010
 
 echo
 
 echo "Some tests that should not work..."
 client_ping_flubber
-client_to_server_tcp81
+both_src_to_dst_proto_port client server tcp 81
