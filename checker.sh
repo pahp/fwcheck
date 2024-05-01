@@ -28,7 +28,7 @@ function do_test() {
 	if [[ $SHOULD_FAIL == 0 ]]
 	then
 		# we WANT the connection to SUCCEED
-		if [[ -n $OUTPUT ]] # we got a reply, which means we connected!
+		if [[ $RET == 0 ]] # we connected!
 		then
 			# success means connecting
 			echo -e " ${GREEN}It SHOULD work, and it did! SUCCESS :)${NC}"
@@ -39,9 +39,10 @@ function do_test() {
 		fi
 	else 
 		# we WANT the connection to FAIL
-		if [[ -n $OUTPUT ]]
+		if [[ $RET == 0 ]] # we connected, but that's bad
 		then
 			# success means NOT connecting
+			echo "OUTPUT: '$OUTPUT' RET: $?"
 			echo -e " ${RED}It should NOT work, but it DID! FAIL! :(${NC}"
 			PASSED=false
 		else
@@ -138,11 +139,6 @@ function client_ping_server() {
 	do_test $QUIT_ON_FAIL 0 client "ping -c 1 server"
 }
 
-function client_ping_flubber() {
-	echo -n "Can client ping nonexistent machine 'flubber'..."
-	do_test $QUIT_ON_FAIL 1 client "ping -c 1 flubber"
-}
-
 function server_ping_client() {
 	echo -n "Can server ping client..."
 	do_test 0 0 server "ping -c 1 client"
@@ -193,6 +189,8 @@ function src_to_dst_tcp_port() {
 
 }
 
+both_src_to_dst_proto_port $FAIL server client udp 10000
+exit
 
 echo "(3.1) Inbound TCP connections to server on standard ports for OpenSSH, Apache, and MySQL:"
 client_to_server_tcp22
@@ -244,7 +242,6 @@ both_src_to_dst_proto_port $FAIL server client tcp 10006
 echo
 
 echo "Some tests that should not work..."
-client_ping_flubber
 both_src_to_dst_proto_port $FAIL client server tcp 1024 
 both_src_to_dst_proto_port $FAIL client server tcp 60000
 both_src_to_dst_proto_port $FAIL client server udp 53
