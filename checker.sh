@@ -245,14 +245,14 @@ echo
 echo "(3.5) Outbound from server to TCP ports 22, 25 and/or 587, 80 and/ or 443:"
 inc_tests && src_to_dst_tcp_port $SUCCEED server client 22 && inc_passed
 
-echo "	Port 25 and/or 587 (only one required):"
+echo "	Port 25 and/or 587 (need only ONE):"
 inc_tests
 if both_src_to_dst_proto_port $SUCCEED server client tcp 25 || both_src_to_dst_proto_port $SUCCEED server client tcp 587
 then
 		inc_passed
 fi
 
-echo "	Port 80 and/or 443 (only one required):"
+echo "	Port 80 and/or 443 (need only ONE):"
 inc_tests
 if both_src_to_dst_proto_port $SUCCEED server client tcp 80 || both_src_to_dst_proto_port $SUCCEED server client tcp
 then
