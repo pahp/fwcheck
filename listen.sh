@@ -22,6 +22,7 @@ EOF
 source helper.sh
 assert_prereqs
 
+DEBUG=true
 UDP_OPTION=""
 SEC=10
 OPTIND=""
@@ -69,6 +70,8 @@ fi
 
 OUTPUT=$(timeout $SEC nc $UDP_OPTION -l $PORT)
 RET=$?
+
+$DEBUG && echo "listen.sh - OUTPUT: $OUTPUT RET: $RET"
 
 if [[ $RET != 0 ]]
 then
