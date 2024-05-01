@@ -6,8 +6,14 @@ echo 'Checking on status of fwcheck install...'
 if [[ ! -d ~/fwcheck ]]
 then echo '~/fwcheck does not exist -- cloning...'
 	cd ~
-	git clone https://github.com/pahp/fwcheck.git
-	exit $?
+	if ! git clone https://github.com/pahp/fwcheck.git
+	then
+		echo "Couldn't clone git repository. Is firewall too restrictive?"
+		echo "If names cannot resolve, you may be restricting the experiment network."
+		exit 1
+	else
+		echo "Cloned repository!"
+	fi
 else echo 'fwcheck exists!' 
 	echo 'Safety check: Is it our git repo?'
 	cd ~/fwcheck
@@ -24,8 +30,14 @@ else echo 'fwcheck exists!'
 			exit 1
 		else
 			echo 'Making sure existing repo is up to date...'
-			git pull
-			exit $?
+			if ! git pull
+			then
+				echo "Couldn't pull from github...? Is your firewall too restrictive?"
+				echo "If names cannot resolve, you may be restricting the experiment network."
+				exit 1
+			else
+				echo "Updated the repository if necessary."
+			fi
 		fi
 	else echo 'Fatal: fwcheck does not appear to be from https://github.com/pahp/fwcheck.git!'
 		exit 1

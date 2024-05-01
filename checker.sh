@@ -82,6 +82,8 @@ for TARGET in client server
 	if ! scp fwbootstrap.sh $TARGET:~/ &> $LOG
 	then
 		echo "Couldn't scp bootstrap to $TARGET."
+		echo "Is $TARGET running and accessible?"
+		echo "$TARGET's firewall may be too restrictive!"
 		exit 1
 	else
 		$DEBUG && echo "Copied bootstrap to $TARGET!"
@@ -90,6 +92,7 @@ for TARGET in client server
 	if ! ssh $TARGET "./fwbootstrap.sh" &> $LOG
 	then
 		echo "Bootstrapping the checker failed for host $TARGET"
+		echo "$TARGET's firewall may be too restrictive!"
 		exit 1
 	else
 		$DEBUG && echo "Bootstrapping for $TARGET complete!"
