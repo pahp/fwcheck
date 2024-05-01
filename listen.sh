@@ -71,7 +71,7 @@ fi
 OUTPUT=$(timeout $SEC nc $UDP_OPTION -l $PORT)
 RET=$?
 
-$DEBUG && echo "listen.sh - OUTPUT: $OUTPUT RET: $RET"
+$DEBUG && echo "listen.sh - OUTPUT: '$OUTPUT' RET: $RET"
 
 if [[ $RET != 0 ]]
 then
