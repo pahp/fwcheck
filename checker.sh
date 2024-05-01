@@ -3,7 +3,7 @@
 # runs a series of checks
 #
 
-DEBUG=true
+DEBUG=false
 RED='\033[0;31m'
 GREEN='\033[1;32m'
 NC='\033[0m'
@@ -21,7 +21,8 @@ function do_test() {
 	SSH_CMD="$4"
 	PASSED=false
 
-	$DEBUG && echo "SHOULD_FAIL: $1 SSH_HOST: $2 SSH_CMD: '$3'"
+	$DEBUG && echo "QUIT_ON_FAIL: $QUIT_ON_FAIL SHOULD_FAIL: $SHOULD_FAIL SSH_HOST: $SSH_HOST"
+	$DEBUG && echo "SSH_CMD: $SSH_CMD"
 
 	OUTPUT=$(ssh $SSH_HOST "$SSH_CMD")
 	RET=$?
@@ -154,23 +155,23 @@ function both_src_to_dst_proto_port() {
 	DESIRE=$1
 	SOURCE=$2
 	DEST=$3
-	PROT=$4
+	PROTO=$4
 	UPORT=$5
 
-	echo -n "Can $SOURCE reach $DEST on $PROT port $UPORT... "
+	$DEBUG && echo -n "Can $SOURCE reach $DEST on $PROTO port $UPORT... "
 
-	if [[ $PROT == "UDP" || $PROT == "udp" ]]
+	if [[ $PROTO == "UDP" || $PROTO == "udp" ]]
 	then
-		PROT="-u"
+		PROTO="-u"
 	else
-		PROT=""
+		PROTO=""
 	fi
 
 	# start talkers in background with a sleep delay
-	ssh $SOURCE "cd fwcheck && sleep 5 && sudo ./talk -H $DEST -p $UPORT $PROT" &> /dev/null &
+	ssh $SOURCE "cd fwcheck && sleep 5 && sudo ./talk.sh -H $DEST -p $UPORT $PROTO" &> /dev/null &
 
 	# start listener
-	do_test $QUIT_ON_FAIL $DESIRE $DEST "cd fwcheck && sudo ./listen.sh -p $UPORT $PROT"
+	do_test $QUIT_ON_FAIL $DESIRE $DEST "cd fwcheck && sudo ./listen.sh -p $UPORT $PROTO"
 
 }
 

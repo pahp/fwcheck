@@ -22,7 +22,7 @@ EOF
 source helper.sh
 assert_prereqs
 
-DEBUG=true
+DEBUG=false
 UDP_OPTION=""
 SEC=10
 OPTIND=""
