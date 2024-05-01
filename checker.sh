@@ -4,9 +4,15 @@
 #
 
 RED='\033[0;31m'
-RED='\033[1;32m'
+GREEN='\033[1;32m'
 NC='\033[0m'
+SUCCEED=0
+FAIL=1
+
 function do_test() {
+
+	# color info from:
+	# https://stackoverflow.com/questions/5947742/how-to-change-the-output-color-of-echo-in-linux
 
 	QUIT_ON_FAIL=$1
 	SHOULD_FAIL=$2
@@ -25,10 +31,10 @@ function do_test() {
 		if [[ -n $OUTPUT ]] # we got a reply, which means we connected!
 		then
 			# success means connecting
-			echo " ${GREEN}YES! SUCCESS :)${NC} (we connected, which is good)"
+			echo -e " ${GREEN}It SHOULD work, and it did! SUCCESS :)${NC}"
 			PASSED=true
 		else
-			echo " ${RED}NO! FAIL :(${NC} (we couldn't connect, which is bad)"
+			echo -e " ${RED}It should work, but it DIDN'T! FAIL :(${NC}"
 			PASSED=false
 		fi
 	else 
@@ -36,10 +42,10 @@ function do_test() {
 		if [[ -n $OUTPUT ]]
 		then
 			# success means NOT connecting
-			echo " ${RED}YES! FAIL :(${NC}  (we connected, which is bad!)"
+			echo -e " ${RED}It should NOT work, but it DID! FAIL! :(${NC}"
 			PASSED=false
 		else
-			echo " ${GREEN}NO! SUCCESS :)${NC} (we couldn't connect, which is good!)"
+			echo -e " ${GREEN}It should NOT work, and it DIDN'T! SUCCESS! :)${NC}"
 			PASSED=true
 		fi
 	fi
@@ -107,7 +113,7 @@ echo Starting tests!
 echo
 
 function client_to_server_tcp443() {
-	echo -n "TEST 1: Can client can reach server:443 (tcp) [https]? "
+	echo -n "TEST 1: Can client reach server:443 (tcp) [https]? "
 	do_test $QUIT_ON_FAIL 0 client "curl --insecure -I https://server/ 2> /dev/null"
 }
 
@@ -126,11 +132,6 @@ function client_to_server_tcp3306() {
 	do_test $QUIT_ON_FAIL 0 client "cd fwcheck && ./talk.sh -H server -p 3306 -q 2> /dev/null"
 }
 
-
-function xdc_to_server_tcp3306() {
-	echo -n "Can XDC reach server:3306 (tcp) [mysql]? It should be disallowed. "
-	do_test $QUIT_ON_FAIL 1 localhost "cd fwcheck && ./talk.sh -H server -p 3306 -q 2> /dev/null"
-}
 
 function client_ping_server() {
 	echo -n "Can client ping server..."
@@ -153,10 +154,11 @@ function both_src_to_dst_proto_port() {
 	# use then when you have to start a listening process
 	# success depends on whether the *listener* gets data
 
-	SOURCE=$1
-	DEST=$2
-	PROT=$3
-	UPORT=$4
+	DESIRE=$1
+	SOURCE=$2
+	DEST=$3
+	PROT=$4
+	UPORT=$5
 
 	echo -n "Can $SOURCE reach $DEST on $PROT port $UPORT... "
 
@@ -168,10 +170,10 @@ function both_src_to_dst_proto_port() {
 	fi
 
 	# start talkers in background with a sleep delay
-	ssh $SOURCE "cd fwcheck && sleep 5 && ./talk -H $DEST -p $UPORT $PROT" &> /dev/null &
+	ssh $SOURCE "cd fwcheck && sleep 5 && sudo ./talk -H $DEST -p $UPORT $PROT" &> /dev/null &
 
 	# start listener
-	do_test $QUIT_ON_FAIL 0 $DEST "cd fwcheck && ./listen.sh -p $UPORT $PROT"
+	do_test $QUIT_ON_FAIL $DESIRE $DEST "cd fwcheck && sudo ./listen.sh -p $UPORT $PROT"
 
 }
 
@@ -179,14 +181,15 @@ function src_to_dst_tcp_port() {
 
 	# use this function when there is already a TCP service running
 
-	SOURCE=$1
-	DEST=$2
-	UPORT=$3
+	DESIRE=$1
+	SOURCE=$2
+	DEST=$3
+	UPORT=$4
 
 	echo -n "Can $SOURCE reach $DEST on TCP port $UPORT... "
 
 	# start talkers in background with a sleep delay
-	do_test $QUIT_ON_FAIL 0 $SOURCE "cd fwcheck && ./talk.sh -H $DEST -p $UPORT"
+	do_test $QUIT_ON_FAIL $DESIRE $SOURCE "cd fwcheck && sudo ./talk.sh -H $DEST -p $UPORT"
 
 }
 
@@ -196,17 +199,18 @@ client_to_server_tcp22
 client_to_server_tcp80
 client_to_server_tcp443
 client_to_server_tcp3306
-xdc_to_server_tcp3306
 
 echo
 
 echo "(3.2) Inbound to server ports 10000-10005 on UDP:"
-both_src_to_dst_proto_port client server "udp" 10000
-both_src_to_dst_proto_port client server "udp" 10001
-both_src_to_dst_proto_port client server "udp" 10002
-both_src_to_dst_proto_port client server "udp" 10003
-both_src_to_dst_proto_port client server "udp" 10004
-both_src_to_dst_proto_port client server "udp" 10005
+both_src_to_dst_proto_port $SUCCEED client server "udp" 10000
+both_src_to_dst_proto_port $SUCCEED client server "udp" 10001
+both_src_to_dst_proto_port $SUCCEED client server "udp" 10002
+both_src_to_dst_proto_port $SUCCEED client server "udp" 10003
+both_src_to_dst_proto_port $SUCCEED client server "udp" 10004
+both_src_to_dst_proto_port $SUCCEED client server "udp" 10005
+both_src_to_dst_proto_port $SUCCEED client server "tcp" 10000
+both_src_to_dst_proto_port $FAIL client server "udp" 10006
 
 echo
 
@@ -221,22 +225,30 @@ server_ping_client
 echo
 
 echo "(3.5) Outbound from server to TCP ports 22, 25, 80, 443:"
-src_to_dst_tcp_port server client 22
-src_to_dst_tcp_port server client 25
-src_to_dst_tcp_port server client 80
-src_to_dst_tcp_port server client 443
+src_to_dst_tcp_port $SUCCEED server client 22
+src_to_dst_tcp_port $SUCCEED server client 25
+src_to_dst_tcp_port $SUCCEED server client 80
+src_to_dst_tcp_port $SUCCEED server client 443
 
 echo
 
 echo "(3.6) Outbound from server to client on UDP ports 10006-10010:"
-both_src_to_dst_proto_port server client udp 10006
-both_src_to_dst_proto_port server client udp 10007
-both_src_to_dst_proto_port server client udp 10008
-both_src_to_dst_proto_port server client udp 10009
-both_src_to_dst_proto_port server client udp 10010
+both_src_to_dst_proto_port $SUCCEED server client udp 10006
+both_src_to_dst_proto_port $SUCCEED server client udp 10007
+both_src_to_dst_proto_port $SUCCEED server client udp 10008
+both_src_to_dst_proto_port $SUCCEED server client udp 10009
+both_src_to_dst_proto_port $SUCCEED server client udp 10010
+both_src_to_dst_proto_port $FAIL server client udp 10000
+both_src_to_dst_proto_port $FAIL server client tcp 10006
 
 echo
 
 echo "Some tests that should not work..."
 client_ping_flubber
-both_src_to_dst_proto_port client server tcp 81
+both_src_to_dst_proto_port $FAIL client server tcp 1024 
+both_src_to_dst_proto_port $FAIL client server tcp 60000
+both_src_to_dst_proto_port $FAIL client server udp 53
+both_src_to_dst_proto_port $FAIL client server udp 1234
+both_src_to_dst_proto_port $FAIL server client udp 1234
+both_src_to_dst_proto_port $FAIL server client tcp 1234
+both_src_to_dst_proto_port $FAIL server client tcp 23
