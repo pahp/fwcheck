@@ -3,6 +3,7 @@
 # runs a series of checks
 #
 
+DEBUG=true
 RED='\033[0;31m'
 GREEN='\033[1;32m'
 NC='\033[0m'
@@ -20,10 +21,12 @@ function do_test() {
 	SSH_CMD="$4"
 	PASSED=false
 
-	#$DEBUG && echo "SHOULD_FAIL: $1 SSH_HOST: $2 SSH_CMD: '$3'"
+	$DEBUG && echo "SHOULD_FAIL: $1 SSH_HOST: $2 SSH_CMD: '$3'"
 
 	OUTPUT=$(ssh $SSH_HOST "$SSH_CMD")
 	RET=$?
+
+	$DEBUG && echo "do_test OUTPUT: '$OUTPUT' RET: $RET"
 
 	if [[ $SHOULD_FAIL == 0 ]]
 	then
@@ -98,8 +101,6 @@ else
 	exit 1
 fi
 
-DEBUG=true
-SSH_CMD="ssh -o StrictHostKeyChecking=no -i /root/.ssh/fwtest root@client" 
 QUIT_ON_FAIL=1
 
 #if [[ $USER != "root" ]]
@@ -115,12 +116,12 @@ echo
 
 function client_to_server_tcp443() {
 	echo -n "TEST 1: Can client reach server:443 (tcp) [https]? "
-	do_test $QUIT_ON_FAIL 0 client "curl --insecure -I https://server/ 2> /dev/null"
+	do_test $QUIT_ON_FAIL 0 client "timeout 5 curl --insecure -I https://server/ 2> /dev/null"
 }
 
 function client_to_server_tcp80() {
 	echo -n "Can client reach server:80 (tcp) [http]..."
-	do_test $QUIT_ON_FAIL 0 client "curl http://server/ 2> /dev/null"
+	do_test $QUIT_ON_FAIL 0 client "timeout 5 curl http://server/ 2> /dev/null"
 }
 
 function client_to_server_tcp22() {
@@ -136,12 +137,12 @@ function client_to_server_tcp3306() {
 
 function client_ping_server() {
 	echo -n "Can client ping server..."
-	do_test $QUIT_ON_FAIL 0 client "ping -c 1 server"
+	do_test $QUIT_ON_FAIL 0 client "ping -W 5 -c 1 server"
 }
 
 function server_ping_client() {
 	echo -n "Can server ping client..."
-	do_test 0 0 server "ping -c 1 client"
+	do_test 0 0 server "ping -W -c 1 client"
 	echo "(Technically, the tasks do not require this, but there is a manual test for it.)"
 }
 
@@ -189,8 +190,8 @@ function src_to_dst_tcp_port() {
 
 }
 
-both_src_to_dst_proto_port $FAIL server client udp 10000
-exit
+both_src_to_dst_proto_port $SUCCEED client server "udp" 10000
+exit 
 
 echo "(3.1) Inbound TCP connections to server on standard ports for OpenSSH, Apache, and MySQL:"
 client_to_server_tcp22
