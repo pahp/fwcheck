@@ -180,7 +180,7 @@ function source_ping_dest() {
 		exit 1
 	fi
 	echo -n "Test $TESTS: Can $SOURCE ping $DEST..."
-	do_test 0 0 server "ping -W 1 -c 1 client"
+	do_test 0 0 $SOURCE "ping -W 1 -c 1 $DEST"
 }
 
 function both_src_to_dst_proto_port() {
@@ -234,6 +234,10 @@ function inc_tests() {
 function inc_passed() {
 	PASSED=$((PASSED + 1))
 }
+
+source_ping_dest client server
+source_ping_dest server client
+exit
 
 echo "(3.1) Inbound TCP connections to server on standard ports for OpenSSH, Apache, and MySQL:"
 inc_tests && client_to_server_tcp22 && inc_passed
