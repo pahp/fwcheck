@@ -4,7 +4,7 @@
 #
 
 VERSION=0.5
-DEBUG=false
+DEBUG=true
 RED='\033[0;31m'
 GREEN='\033[1;32m'
 NC='\033[0m'
@@ -52,6 +52,7 @@ function do_test() {
 			RETVAL=true
 		else
 			echo -e " ${RED}It should work, but it DIDN'T! FAIL :(${NC}"
+			echo "RET = $RET"
 			RETVAL=false
 		fi
 	else 
@@ -61,9 +62,17 @@ function do_test() {
 			# success means NOT connecting
 			echo "OUTPUT: '$OUTPUT' RET: $?"
 			echo -e " ${RED}It should NOT work, but it DID! FAIL! :(${NC}"
+			$DEBUG && echo "RET = $RET"
+			RETVAL=false
+		elif [[ $RET == 1 ]]
+		then
+			echo -e " ${RED}It should NOT work, and it DIDN'T, but we were REJECTED! FAIL! :)${NC}"
+			echo "Ensure that your firewall is DROPping unwanted traffic, not REJECTing it."
+			$DEBUG && echo "RET = $RET"
 			RETVAL=false
 		else
 			echo -e " ${GREEN}It should NOT work, and it DIDN'T! SUCCESS! :)${NC}"
+			$DEBUG && echo "RET = $RET"
 			RETVAL=true
 		fi
 	fi
@@ -223,7 +232,6 @@ function inc_tests() {
 function inc_passed() {
 	PASSED=$((PASSED + 1))
 }
-
 
 echo "(3.1) Inbound TCP connections to server on standard ports for OpenSSH, Apache, and MySQL:"
 inc_tests && client_to_server_tcp22 && inc_passed
