@@ -235,10 +235,6 @@ function inc_passed() {
 	PASSED=$((PASSED + 1))
 }
 
-source_ping_dest client server
-source_ping_dest server client
-exit
-
 echo "(3.1) Inbound TCP connections to server on standard ports for OpenSSH, Apache, and MySQL:"
 inc_tests && client_to_server_tcp22 && inc_passed
 inc_tests 
@@ -274,7 +270,7 @@ inc_tests && source_ping_dest client server && inc_passed
 echo
 
 echo "(3.3) Outbund ICMP pings & replies..."
-echo "(Technically, the tasks do not require this, so it is optional.)"
+echo "(Technically, the tasks do not require this, so it is OPTIONAL.)"
 source_ping_dest server client
 
 echo
