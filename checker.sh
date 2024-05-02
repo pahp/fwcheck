@@ -4,7 +4,7 @@
 #
 
 VERSION=0.5
-DEBUG=true
+DEBUG=false
 RED='\033[0;31m'
 GREEN='\033[1;32m'
 NC='\033[0m'
@@ -236,12 +236,9 @@ function inc_passed() {
 }
 
 echo "******************************************"
-echo "Checker is being fixed, please ignore..."
+echo "BEWARE: Checker is being fixed..."
 echo "******************************************"
 echo
-inc_tests && client_to_server_tcp3306 && inc_passed
-inc_tests && both_src_to_dst_proto_port $FAIL client server tcp 23 && inc_passed
-exit 
 
 echo "(3.1) Inbound TCP connections to server on standard ports for OpenSSH, Apache, and MySQL:"
 inc_tests && client_to_server_tcp22 && inc_passed
