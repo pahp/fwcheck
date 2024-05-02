@@ -4,7 +4,7 @@
 #
 
 VERSION=0.5
-DEBUG=false
+DEBUG=true
 RED='\033[0;31m'
 GREEN='\033[1;32m'
 NC='\033[0m'
@@ -15,6 +15,7 @@ PASSED=0
 
 function restrictive_firewall_message_exit() {
 	echo "Is $TARGET running and accessible?"
+	echo "Was any fwcheck code modified in $TARGET?"
 	echo "$TARGET's firewall may be too restrictive!"
 	echo "Try disabling the firewall on server with 'sudo /root/firewall/extingui.sh', then"
 	echo "try running the checker again. If the checker works, your firewall was too restrictive."
@@ -52,7 +53,7 @@ function do_test() {
 			RETVAL=true
 		else
 			echo -e " ${RED}It should work, but it DIDN'T! FAIL :(${NC}"
-			echo "RET = $RET"
+			$DEBUG && echo "RET = $RET"
 			RETVAL=false
 		fi
 	else 
@@ -110,22 +111,22 @@ fi
 for TARGET in client server
 	do 
 
-	$DEBUG && echo "Bootstrapping fwcheck for $TARGET..."
+	echo "Bootstrapping fwcheck for $TARGET..."
 
-	if ! scp fwbootstrap.sh $TARGET:~/ &> $LOG
+	if ! scp -oStrictHostKeyChecking=no fwbootstrap.sh $TARGET:~/ &> $LOG
 	then
 		echo "Couldn't scp bootstrap to $TARGET."
 		restrictive_firewall_message_exit
 	else
-		$DEBUG && echo "Copied bootstrap to $TARGET!"
+		echo "Copied bootstrap to $TARGET!"
 	fi
 
-	if ! ssh $TARGET "./fwbootstrap.sh" &> $LOG
+	if ! ssh -oStrictHostKeyChecking=no $TARGET "./fwbootstrap.sh" $LOG
 	then
 		echo "Bootstrapping the checker failed for host $TARGET"
 		restrictive_firewall_message_exit
 	else
-		$DEBUG && echo "Bootstrapping for $TARGET complete!"
+		echo "Bootstrapping for $TARGET complete!"
 	fi
 done
 
@@ -165,7 +166,7 @@ function client_to_server_tcp22() {
 
 function client_to_server_tcp3306() {
 	echo -n "Test $TESTS: Can client reach server:3306 (tcp) [mysql] "
-	do_test $QUIT_ON_FAIL 0 client "cd fwcheck && ./talk.sh -H server -p 3306 -q 2> /dev/null"
+	do_test $QUIT_ON_FAIL 0 client "cd fwcheck && ./talk.sh -H server -p 3306 2> /dev/null"
 }
 
 
@@ -233,6 +234,14 @@ function inc_tests() {
 function inc_passed() {
 	PASSED=$((PASSED + 1))
 }
+
+echo "******************************************"
+echo "Checker is being fixed, please ignore..."
+echo "******************************************"
+echo
+inc_tests && client_to_server_tcp3306 && inc_passed
+inc_tests && both_src_to_dst_proto_port $FAIL client server tcp 23 && inc_passed
+exit 
 
 echo "(3.1) Inbound TCP connections to server on standard ports for OpenSSH, Apache, and MySQL:"
 inc_tests && client_to_server_tcp22 && inc_passed
