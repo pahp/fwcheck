@@ -118,8 +118,8 @@ then
 		exit 1
 	else
 		echo "Return value 0 -- TCP closed remotely! Checking for data..."
+		# if TCP was closed remotely, check if we got data
 		output_check $OUTPUT
-		$DEBUG && echo "Returning RET: $RET" # 1 - REJECT, 124 - timeout (DROP)
 	fi
 elif [[ $RET == 1 ]]
 then
