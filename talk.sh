@@ -26,11 +26,11 @@ function output_check() {
 	echo "Output is: '$OUTPUT'"
 	if [[ -z $OUTPUT ]]
 	then
-		echo "-- we got no data. Seems like we're getting DROPped."
-		exit 1
+		echo "-- we got no data from TCP. Seems like we're getting DROPped."
+		false
 	else
-		echo "-- we got data back! We made a connection!"
-		exit 0
+		echo "-- we got data back from TCP! We made a connection!"
+		true
 	fi
 
 }
@@ -124,8 +124,9 @@ then
 	exit $RET
 elif (( $RET > 1 ))
 then
-	echo "nc was killed by timeout -- did we get any data back?"
+	echo "nc was killed by timeout (RET: $RET) -- did we get any data back?"
 	output_check $OUTPUT
+	echo "ret $RET"
 	exit $RET
 fi
 
