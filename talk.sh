@@ -3,6 +3,8 @@
 # talk.sh -- talks for a particular type of connection
 # returns true if it gets it or false if it doesn't within n seconds
 
+DEBUG=false
+
 function usage() {
 
 cat<<EOF
@@ -40,6 +42,7 @@ function output_check() {
 # check prereqs
 source helper.sh
 assert_prereqs
+
 
 UDP_OPTION=""
 SEC=10
@@ -116,7 +119,7 @@ then
 	else
 		echo "Return value 0 -- TCP closed remotely! Checking for data..."
 		output_check $OUTPUT
-		echo "Returning RET: $RET" # 1 - REJECT, 124 - timeout (DROP)
+		$DEBUG && echo "Returning RET: $RET" # 1 - REJECT, 124 - timeout (DROP)
 	fi
 elif [[ $RET == 1 ]]
 then
@@ -126,7 +129,7 @@ elif (( $RET > 1 ))
 then
 	echo "nc was killed by timeout (RET: $RET) -- did we get any data back?"
 	output_check $OUTPUT
-	echo "ret $RET"
+	$DEBUG echo "ret $RET"
 	exit $RET
 fi
 

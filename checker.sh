@@ -4,7 +4,7 @@
 #
 
 VERSION=0.5
-DEBUG=true
+DEBUG=false
 RED='\033[0;31m'
 GREEN='\033[1;32m'
 NC='\033[0m'
@@ -66,8 +66,9 @@ function do_test() {
 			RETVAL=false
 		elif [[ $RET == 1 ]]
 		then
-			echo -e " ${RED}It should NOT work, and it DIDN'T, but we were REJECTED! FAIL! :)${NC}"
-			echo "Ensure that your firewall is DROPping unwanted traffic, not REJECTing it."
+			echo -e " ${GREEN}It should NOT work, and it DIDN'T! SUCCESS! :)${NC}"
+#			echo -e " ${RED}It should NOT work, and it DIDN'T, but we were REJECTED! FAIL! :)${NC}"
+#			echo "Ensure that your firewall is DROPping unwanted traffic, not REJECTing it."
 			$DEBUG && echo "RET = $RET"
 			RETVAL=false
 		else
