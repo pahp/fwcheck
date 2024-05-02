@@ -3,7 +3,7 @@
 # runs a series of checks
 #
 
-VERSION=0.5
+VERSION=0.7
 DEBUG=false
 RED='\033[0;31m'
 GREEN='\033[1;32m'
