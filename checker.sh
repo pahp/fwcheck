@@ -61,7 +61,7 @@ function do_test() {
 		if [[ $RET == 0 ]] # we connected, but that's bad
 		then
 			# success means NOT connecting
-			echo "OUTPUT: '$OUTPUT' RET: $?"
+			$DEBUG && echo "OUTPUT: '$OUTPUT' RET: $?"
 			echo -e " ${RED}It should NOT work, but it DID! FAIL! :(${NC}"
 			$DEBUG && echo "RET = $RET"
 			RETVAL=false
