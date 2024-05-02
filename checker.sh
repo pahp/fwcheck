@@ -236,7 +236,7 @@ inc_tests && client_to_server_tcp3306 && inc_passed
 
 echo "	Some similar connections that should fail:"
 inc_tests && both_src_to_dst_proto_port $FAIL client server tcp 23 && inc_passed
-inc_tests && src_to_dst_proto_port $FAIL client server tcp 25565 && inc_passed
+inc_tests && both_src_to_dst_proto_port $FAIL client server tcp 25565 && inc_passed
 
 echo
 
