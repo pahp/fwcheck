@@ -116,15 +116,17 @@ then
 	else
 		echo "Return value 0 -- TCP closed remotely! Checking for data..."
 		output_check $OUTPUT
+		echo "Returning RET: $RET" # 1 - REJECT, 124 - timeout (DROP)
 	fi
 elif [[ $RET == 1 ]]
 then
 	echo "TCP connection failed -- closed port or REJECT!"
-	exit 1
+	exit $RET
 elif (( $RET > 1 ))
 then
 	echo "nc was killed by timeout -- did we get any data back?"
 	output_check $OUTPUT
+	exit $RET
 fi
 
 
