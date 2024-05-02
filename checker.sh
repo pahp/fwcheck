@@ -235,11 +235,6 @@ function inc_passed() {
 	PASSED=$((PASSED + 1))
 }
 
-echo "******************************************"
-echo "BEWARE: Checker is being fixed..."
-echo "******************************************"
-echo
-
 echo "(3.1) Inbound TCP connections to server on standard ports for OpenSSH, Apache, and MySQL:"
 inc_tests && client_to_server_tcp22 && inc_passed
 inc_tests 
