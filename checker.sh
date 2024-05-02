@@ -180,7 +180,7 @@ function source_ping_dest() {
 		exit 1
 	fi
 	echo -n "Test $TESTS: Can $SOURCE ping $DEST..."
-	do_test 0 0 server "ping -W 1 -c 1 client"
+	do_test 0 0 $SOURCE "ping -W 1 -c 1 $DEST"
 }
 
 function both_src_to_dst_proto_port() {
@@ -270,7 +270,7 @@ inc_tests && source_ping_dest client server && inc_passed
 echo
 
 echo "(3.3) Outbund ICMP pings & replies..."
-echo "(Technically, the tasks do not require this, so it is optional.)"
+echo "(Technically, the tasks do not require this, so it is OPTIONAL.)"
 source_ping_dest server client
 
 echo
