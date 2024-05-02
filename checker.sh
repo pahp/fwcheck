@@ -71,7 +71,7 @@ function do_test() {
 #			echo -e " ${RED}It should NOT work, and it DIDN'T, but we were REJECTED! FAIL! :)${NC}"
 #			echo "Ensure that your firewall is DROPping unwanted traffic, not REJECTing it."
 			$DEBUG && echo "RET = $RET"
-			RETVAL=false
+			RETVAL=true
 		else
 			echo -e " ${GREEN}It should NOT work, and it DIDN'T! SUCCESS! :)${NC}"
 			$DEBUG && echo "RET = $RET"
@@ -150,22 +150,22 @@ echo Starting tests!
 echo
 
 function client_to_server_tcp443() {
-	echo -n "Test $TESTS: Can client reach server:443 (tcp) [https] (OPTIONAL)? "
+	echo -n "Test $TESTS: client -> server:443 (tcp) [https] (OPTIONAL)? "
 	do_test $QUIT_ON_FAIL 0 client "timeout 5 curl --insecure -I https://server/ 2> /dev/null"
 }
 
 function client_to_server_tcp80() {
-	echo -n "Test $TESTS: Can client reach server:80 (tcp) [http]..."
+	echo -n "Test $TESTS: client -> server:80 (tcp) [http]..."
 	do_test $QUIT_ON_FAIL 0 client "timeout 5 curl http://server/ 2> /dev/null"
 }
 
 function client_to_server_tcp22() {
-	echo -n "Test $TESTS: Can client reach server:22 (tcp) [ssh]..."
+	echo -n "Test $TESTS: client -> server:22 (tcp) [ssh]..."
 	do_test $QUIT_ON_FAIL 0 client "cd fwcheck && ./talk.sh -H server -p 22"
 }
 
 function client_to_server_tcp3306() {
-	echo -n "Test $TESTS: Can client reach server:3306 (tcp) [mysql] "
+	echo -n "Test $TESTS: client -> server:3306 (tcp) [mysql] "
 	do_test $QUIT_ON_FAIL 0 client "cd fwcheck && ./talk.sh -H server -p 3306 2> /dev/null"
 }
 
@@ -194,7 +194,7 @@ function both_src_to_dst_proto_port() {
 	PROTO=$4
 	UPORT=$5
 
-	echo -n "Test $TESTS: Can $SOURCE reach $DEST on $PROTO port $UPORT... "
+	echo -n "Test $TESTS: $SOURCE -> $DEST on $PROTO port $UPORT... "
 
 	if [[ $PROTO == "UDP" || $PROTO == "udp" ]]
 	then
@@ -220,7 +220,7 @@ function src_to_dst_tcp_port() {
 	DEST=$3
 	UPORT=$4
 
-	echo -n "Test $TESTS: Can $SOURCE reach $DEST on TCP port $UPORT... "
+	echo -n "Test $TESTS: $SOURCE -> $DEST on TCP port $UPORT... "
 
 	# start talkers in background with a sleep delay
 	do_test $QUIT_ON_FAIL $DESIRE $SOURCE "cd fwcheck && sudo ./talk.sh -H $DEST -p $UPORT"
@@ -314,4 +314,26 @@ inc_tests && both_src_to_dst_proto_port $FAIL server client udp 10000 && inc_pas
 inc_tests && both_src_to_dst_proto_port $FAIL server client tcp 10006 && inc_passed
 
 echo
+echo "Firewall currently passes $PASSED of the preceeding $TESTS tests."
+echo
+cat <<TEXT
+Here are a number of tests of various ports / protocols / hosts that should be blocked.
+If any of these tests fail, then you are allowing traffic that you shouldn't.
+(hit ^C to quit early)...
+TEXT
+
+for i in $(seq 1000 1005)
+do
+	inc_tests && both_src_to_dst_proto_port $FAIL server client tcp $i && inc_passed
+	inc_tests && both_src_to_dst_proto_port $FAIL server client udp $i && inc_passed
+	inc_tests && both_src_to_dst_proto_port $FAIL client server tcp $i && inc_passed
+	inc_tests && both_src_to_dst_proto_port $FAIL client server udp $i && inc_passed
+done
+
+echo
 echo "Firewall passed $PASSED tests out of $TESTS."
+echo
+cat <<TEXT
+Remember that the firewall cannot test spoofing, and also currently cannot tell
+whether you are REJECTing or DROPping unwanted traffic.
+TEXT
