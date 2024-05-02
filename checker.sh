@@ -13,6 +13,16 @@ FAIL=1
 TESTS=0
 PASSED=0
 
+function restrictive_firewall_message_exit() {
+	echo "Is $TARGET running and accessible?"
+	echo "$TARGET's firewall may be too restrictive!"
+	echo "Try disabling the firewall on server with 'sudo /root/firewall/extingui.sh', then"
+	echo "try running the checker again. If the checker works, your firewall was too restrictive."
+	echo "Fix your firewall and try again. If even this doesn't work, contact your instructor."
+	exit 1
+}
+
+
 function do_test() {
 
 	# color info from:
@@ -73,6 +83,19 @@ $DEBUG && echo "Logfile is $LOG"
 
 echo "Starting Firewall Checker v$VERSION..."
 
+# checking to see if current repo is up to date
+
+if git remote update && git status -uno | grep "Your branch is behind"
+then
+	echo "Updating checker..."
+	git pull
+	echo 
+	echo "Please restart the checker to use the new version."
+	exit 0
+else
+	echo "Checker up to date!"
+fi
+
 # do bootstrap
 for TARGET in client server
 	do 
@@ -82,9 +105,7 @@ for TARGET in client server
 	if ! scp fwbootstrap.sh $TARGET:~/ &> $LOG
 	then
 		echo "Couldn't scp bootstrap to $TARGET."
-		echo "Is $TARGET running and accessible?"
-		echo "$TARGET's firewall may be too restrictive!"
-		exit 1
+		restrictive_firewall_message_exit
 	else
 		$DEBUG && echo "Copied bootstrap to $TARGET!"
 	fi
@@ -92,8 +113,7 @@ for TARGET in client server
 	if ! ssh $TARGET "./fwbootstrap.sh" &> $LOG
 	then
 		echo "Bootstrapping the checker failed for host $TARGET"
-		echo "$TARGET's firewall may be too restrictive!"
-		exit 1
+		restrictive_firewall_message_exit
 	else
 		$DEBUG && echo "Bootstrapping for $TARGET complete!"
 	fi
