@@ -3,7 +3,7 @@
 # talk.sh -- talks for a particular type of connection
 # returns true if it gets it or false if it doesn't within n seconds
 
-DEBUG=false
+DEBUG=true
 
 function usage() {
 
