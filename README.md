@@ -55,13 +55,18 @@ You are responsible for making sure that your firewall handles those conditions.
 
 If you get strange errors when you run the checker, e.g., about name resolution, then there's a good chance your firewall is too restrictive and is blocking domain name lookups from server (e.g., your server can't find `github.com` because DNS is blocked).
 
+One way to troubleshoot is to log on to `server` and disable the firewall by executing:
+
+```
+$ sudo /root/firewall/extingui.sh
+```
+
+... and then rerunning the checker. If the checker works when your firewall is disabled but fails to run when it is enabled, then your firewall is too restrictive in some way.
+
 The checker will fail if you modify the files in `~/fwcheck` on any node.
 
 # Problems?
 
 Contact [pahp@d.umn.edu](mailto:pahp@d.umn.edu).
 
-The script should run a number of tests, and give you a general score at the end. There are a few things the checker cannot test (e.g., spoofing).
-If you are not even able to start the script, or you get lots of messages about names not resolving, it's likely you have overly restricted the eth0 network and blocked name to IP resolution. Try disabling your firewall by running sudo /root/firewall/extingui.sh on server, then (on your XDC) run ./checker.sh (i.e., run the checker without your firewall enabled). Then, enable your firewall with sudo /root/firewall/firewall.sh and then run ./checker.sh.
-You should pass a lot of tests without the firewall running, but fail a bunch of tests, too. If your firewall is correct, you should pass all the tests.
 Please report your issues! This is brand new software and there will certainly be problems.
