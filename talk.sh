@@ -3,7 +3,7 @@
 # talk.sh -- talks for a particular type of connection
 # returns true if it gets it or false if it doesn't within n seconds
 
-DEBUG=false
+DEBUG=true
 
 function usage() {
 
@@ -28,7 +28,7 @@ function output_check() {
 	echo "Output is: '$OUTPUT'"
 	if [[ -z $OUTPUT ]]
 	then
-		echo "-- we got no data from TCP. Seems like we're getting DROPped."
+		echo "-- we got no data from TCP."
 		false
 	else
 		echo "-- we got data back from TCP! We made a connection!"
@@ -120,6 +120,7 @@ then
 		echo "Return value 0 -- TCP closed remotely! Checking for data..."
 		# if TCP was closed remotely, check if we got data
 		output_check $OUTPUT
+		exit 0 # a return value of 0 for TCP means you connected
 	fi
 elif [[ $RET == 1 ]]
 then
