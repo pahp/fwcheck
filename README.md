@@ -44,12 +44,14 @@ When you run the checker, it will install / update itself on the experiment node
 
 # What doesn't the checker check?
 
-There are certain things the checker cannot test, such as:
+There are certain things the checker cannot test, and you are responsible for making sure that your firewall handles those conditions.
 
- 1. Whether your script properly blocks spoofed traffic
- 2. Whether you are `REJECT`ing or `DROP`ping traffic (for certain tests)
+Limitations include:
 
-You are responsible for making sure that your firewall handles those conditions.
+ 1. Testing whether your script properly blocks spoofed traffic
+ 2. Testing whether you are `REJECT`ing or `DROP`ping traffic (for certain tests).
+
+The checker also does not check for symmetry in UDP connections, although the assignment is not clear whether duplex (two way) UDP connections are required. For example, `client` is supposed to be able to reach `server` via UDP on certain ports, but it doesn't say whether `server` is supposed to be able to reply. However, the checker only checks whether `client` can send to `server`. Duplex conversations are required to establish TCP connections (because the receiever has to reply to the sender throughout the life of the connetion), so "duplexity" is automatically tested for TCP connections. These limitations are more academic limitations of the checker, and aren't super relevant for students using the tool.
 
 # Troubleshooting
 
